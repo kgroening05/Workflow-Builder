@@ -1,33 +1,48 @@
 import { create } from "zustand";
-import type { Node, Edge, NodeChange, EdgeChange } from 'reactflow';
-import { applyNodeChanges, applyEdgeChanges } from 'reactflow';
+import type { Node, Edge, NodeChange, EdgeChange } from '@xyflow/react';
+import { applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
 import type { WorkflowNodeData } from "../types/nodes";
 
+type WorkflowNode = Node<WorkflowNodeData, "custom">;
+type WorkflowEdge = Edge;
+
 type WorkflowState = {
-  nodes: Node<WorkflowNodeData>[];
-  edges: Edge[];
-  selectedNode: Node<WorkflowNodeData> | null;
+  nodes: WorkflowNode[];
+  edges: WorkflowEdge[];
+  selectedNode: WorkflowNode | null;
+
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
-  selectNode: (node: Node<WorkflowNodeData> | null) => void;
+
+  selectNode: (node: WorkflowNode | null) => void;
 };
 
 export const useWorkflowStore = create<WorkflowState>((set, get) => ({
-  nodes: [],
+  nodes: [{
+    id: "1",
+    type: "custom",
+    position: { x: 100, y: 100 },
+    data: {
+      label: "Example Node",
+      params: {
+        param1: "value1",
+        param2: "value2",
+      },
+    },
+  }],
   edges: [],
   selectedNode: null,
 
   onNodesChange: (changes) => {
-    const updatedNodes = applyNodeChanges(changes, get().nodes);
-    set({ nodes: updatedNodes });
+    const updated = applyNodeChanges(changes, get().nodes) as WorkflowNode[];
+    set({ nodes: updated });
   },
 
   onEdgesChange: (changes) => {
-    const updatedEdges = applyEdgeChanges(changes, get().edges);
-    set({ edges: updatedEdges });
+    set({
+      edges: applyEdgeChanges(changes, get().edges),
+    });
   },
 
-  setNodes: (nodes: Node[]) => set({ nodes }),
-  setEdges: (edges: Edge[]) => set({ edges }),
-  selectNode: (node: Node | null) => set({ selectedNode: node }),
+  selectNode: (node) => set({ selectedNode: node }),
 }));
